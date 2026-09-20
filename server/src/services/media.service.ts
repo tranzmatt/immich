@@ -300,10 +300,8 @@ export class MediaService extends BaseService {
       isConvertFullsize ? undefined : image.preview.size,
     );
 
-    let isTransparent = false;
-    if (!extracted && mimeTypes.canBeTransparent(asset.originalPath)) {
-      isTransparent = metadata!.isTransparent;
-    }
+    const isTransparent =
+      !extracted && mimeTypes.canBeTransparent(asset.originalPath) ? metadata!.isTransparent : false;
 
     return {
       extracted,
