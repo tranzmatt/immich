@@ -2026,6 +2026,7 @@ describe(MetadataService.name, () => {
         'timeZone',
       ]);
       mocks.assetJob.getForSidecarWriteJob.mockResolvedValue(getForSidecarWrite(asset));
+      mocks.metadata.writeTags.mockResolvedValue(true);
       await expect(
         sut.handleSidecarWrite({
           id: asset.id,
@@ -2053,6 +2054,7 @@ describe(MetadataService.name, () => {
 
       mocks.assetJob.getLockedPropertiesForMetadataExtraction.mockResolvedValue(['rating']);
       mocks.assetJob.getForSidecarWriteJob.mockResolvedValue(getForSidecarWrite(asset));
+      mocks.metadata.writeTags.mockResolvedValue(true);
       await expect(sut.handleSidecarWrite({ id: asset.id })).resolves.toBe(JobStatus.Success);
       expect(mocks.metadata.writeTags).toHaveBeenCalledWith(asset.files[0].path, { Rating: 4 });
       expect(mocks.asset.unlockProperties).toHaveBeenCalledWith(asset.id, ['rating']);
@@ -2064,9 +2066,25 @@ describe(MetadataService.name, () => {
 
       mocks.assetJob.getLockedPropertiesForMetadataExtraction.mockResolvedValue(['rating']);
       mocks.assetJob.getForSidecarWriteJob.mockResolvedValue(getForSidecarWrite(asset));
+      mocks.metadata.writeTags.mockResolvedValue(true);
       await expect(sut.handleSidecarWrite({ id: asset.id })).resolves.toBe(JobStatus.Success);
       expect(mocks.metadata.writeTags).toHaveBeenCalledWith(asset.files[0].path, { Rating: 0 });
       expect(mocks.asset.unlockProperties).toHaveBeenCalledWith(asset.id, ['rating']);
+    });
+
+    it('should keep properties locked and not register a sidecar file when the write fails', async () => {
+      const asset = AssetFactory.from().exif().build();
+      asset.exifInfo.rating = 4;
+
+      mocks.assetJob.getLockedPropertiesForMetadataExtraction.mockResolvedValue(['rating']);
+      mocks.assetJob.getForSidecarWriteJob.mockResolvedValue(getForSidecarWrite(asset));
+      mocks.metadata.writeTags.mockResolvedValue(false);
+
+      await expect(sut.handleSidecarWrite({ id: asset.id })).resolves.toBe(JobStatus.Failed);
+
+      expect(mocks.metadata.writeTags).toHaveBeenCalledWith(`${asset.originalPath}.xmp`, { Rating: 4 });
+      expect(mocks.asset.upsertFile).not.toHaveBeenCalled();
+      expect(mocks.asset.unlockProperties).not.toHaveBeenCalled();
     });
   });
 
