@@ -32,3 +32,13 @@ export const mergeTimeZone = (dateTimeOriginal?: string | null, timeZone?: strin
     ? DateTime.fromISO(dateTimeOriginal, { zone: 'UTC' }).setZone(timeZone ?? undefined)
     : undefined;
 };
+
+/**
+ * The "local" wall-clock reading for a dateTimeOriginal, re-labeled as UTC so it can be stored
+ * and compared without also carrying a timezone. Mirrors how metadata extraction computes
+ * asset.localDateTime from an image's embedded EXIF date/timezone (see MetadataService.getDates),
+ * so a manual date edit stays consistent with what a fresh extraction would have produced.
+ */
+export const toLocalDateTime = (dateTimeOriginal: string) => {
+  return DateTime.fromISO(dateTimeOriginal, { setZone: true }).setZone('UTC', { keepLocalTime: true }).toJSDate();
+};

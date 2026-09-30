@@ -229,6 +229,21 @@ describe(AssetService.name, () => {
       expect(mocks.job.queue).toHaveBeenCalledWith({ name: JobName.SidecarWrite, data: { id: asset.id } });
     });
 
+    it('should sync fileCreatedAt and localDateTime on the asset when dateTimeOriginal is edited', async () => {
+      const asset = AssetFactory.create();
+      mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
+      mocks.asset.getById.mockResolvedValue(getForAsset(asset));
+      mocks.asset.update.mockResolvedValue(getForAsset(asset));
+
+      await sut.update(authStub.admin, asset.id, { dateTimeOriginal: '2025-01-01T02:00:00-05:00' });
+
+      expect(mocks.asset.update).toHaveBeenCalledWith({
+        id: asset.id,
+        fileCreatedAt: new Date('2025-01-01T07:00:00.000Z'),
+        localDateTime: new Date('2025-01-01T02:00:00.000Z'),
+      });
+    });
+
     it('should fail linking a live video if the motion part could not be found', async () => {
       const auth = AuthFactory.create();
       const asset = AssetFactory.create();
@@ -451,7 +466,13 @@ describe(AssetService.name, () => {
         duplicateId: undefined,
         rating: undefined,
       });
-      expect(mocks.asset.updateAll).toHaveBeenCalled();
+      expect(mocks.asset.updateAll).toHaveBeenCalledWith(
+        ['asset-1'],
+        expect.objectContaining({
+          fileCreatedAt: new Date(dateTimeOriginal),
+          localDateTime: new Date(dateTimeOriginal),
+        }),
+      );
       expect(mocks.asset.updateAllExif).toHaveBeenCalledWith(['asset-1'], {
         dateTimeOriginal,
         latitude: 30,
