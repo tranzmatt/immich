@@ -49,7 +49,7 @@ import {
   onBeforeUnlink,
 } from 'src/utils/asset.util.js';
 import { updateLockedColumns } from 'src/utils/database.js';
-import { extractTimeZone } from 'src/utils/date.js';
+import { extractTimeZone, toLocalDateTime } from 'src/utils/date.js';
 import { batched, findOrFail } from 'src/utils/misc.js';
 import { transformOcrBoundingBox } from 'src/utils/transform.js';
 
@@ -115,7 +115,16 @@ export class AssetService extends BaseService {
 
     const wroteMetadata = await this.updateExif({ id, description, dateTimeOriginal, latitude, longitude, rating });
 
-    const asset = await this.assetRepository.update({ id, ...rest });
+    // asset_exif.dateTimeOriginal is what the detail panel reads, but the timeline/grid groups
+    // and sorts by asset.localDateTime (and searches by asset.fileCreatedAt) - neither of which
+    // metadata extraction re-derives from a locked, manually-edited exif value. Without this, a
+    // date edit appears to "not take" everywhere except the detail panel.
+    const dates =
+      dateTimeOriginal === undefined
+        ? undefined
+        : { fileCreatedAt: new Date(dateTimeOriginal), localDateTime: toLocalDateTime(dateTimeOriginal) };
+
+    const asset = await this.assetRepository.update({ id, ...rest, ...dates });
 
     if (previousMotion && asset) {
       await onAfterUnlink(repos, {
@@ -152,7 +161,20 @@ export class AssetService extends BaseService {
     } = dto;
     await this.requireAccess({ auth, permission: Permission.AssetUpdate, ids });
 
-    const assetDto = omitBy({ isFavorite, visibility, duplicateId }, isUndefined);
+    // See update()'s `dates` comment: asset.localDateTime/fileCreatedAt drive the timeline/grid
+    // and search, and don't get re-derived from a locked, manually-edited exif value on their own.
+    const assetDto = omitBy(
+      {
+        isFavorite,
+        visibility,
+        duplicateId,
+        ...(dateTimeOriginal !== undefined && {
+          fileCreatedAt: new Date(dateTimeOriginal),
+          localDateTime: toLocalDateTime(dateTimeOriginal),
+        }),
+      },
+      isUndefined,
+    );
     const exifDto = omitBy(
       {
         latitude,
