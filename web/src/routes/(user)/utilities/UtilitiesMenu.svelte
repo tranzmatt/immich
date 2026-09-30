@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { env } from '$env/dynamic/public';
   import AppDownloadModal from '$lib/modals/AppDownloadModal.svelte';
   import ObtainiumConfigModal from '$lib/modals/ObtainiumConfigModal.svelte';
   import { Route } from '$lib/route';
@@ -15,6 +16,16 @@
 
   const links = [
     { href: Route.duplicatesUtility(), icon: mdiContentDuplicate, label: $t('review_duplicates') },
+    ...(env.PUBLIC_EXACT_DUPLICATES_URL
+      ? [
+          {
+            href: env.PUBLIC_EXACT_DUPLICATES_URL,
+            icon: mdiContentDuplicate,
+            label: 'Exact duplicates',
+            external: true,
+          },
+        ]
+      : []),
     { href: Route.largeFileUtility(), icon: mdiImageSizeSelectLarge, label: $t('review_large_files') },
     { href: Route.geolocationUtility(), icon: mdiCrosshairsGps, label: $t('manage_geolocation') },
     { href: Route.workflows(), icon: mdiStateMachine, label: $t('workflows') },
@@ -25,7 +36,12 @@
   <Text size="tiny" color="muted" fontWeight="medium" class="p-4">{$t('organize_your_library')}</Text>
 
   {#each links as link (link.href)}
-    <a href={link.href} class="flex w-full items-center gap-4 p-4 hover:bg-gray-100 dark:hover:bg-immich-dark-gray">
+    <a
+      href={link.href}
+      target={'external' in link && link.external ? '_blank' : undefined}
+      rel={'external' in link && link.external ? 'noreferrer' : undefined}
+      class="flex w-full items-center gap-4 p-4 hover:bg-gray-100 dark:hover:bg-immich-dark-gray"
+    >
       <span><Icon icon={link.icon} class="text-primary" size="24" /> </span>
       {link.label}
     </a>

@@ -51,6 +51,8 @@ COPY ./web ./web/
 
 ARG BUILD_ID
 ENV IMMICH_BUILD=${BUILD_ID}
+ARG PUBLIC_EXACT_DUPLICATES_URL
+ENV PUBLIC_EXACT_DUPLICATES_URL=${PUBLIC_EXACT_DUPLICATES_URL}
 
 RUN --mount=type=cache,id=pnpm,target=/buildcache/pnpm-store pnpm --filter immich-web build
 
