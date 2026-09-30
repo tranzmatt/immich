@@ -341,6 +341,28 @@ export class AssetRepository {
       .execute();
   }
 
+  // Keeps asset.fileCreatedAt/localDateTime in sync with a bulk-shifted or manually-edited
+  // dateTimeOriginal - see updateDateTimeOriginal() and upsertExif(), neither of which touch
+  // the asset table. Each row gets its own fileCreatedAt/localDateTime since a relative shift
+  // starts from a different original date per asset.
+  @ChunkedArray({ chunkSize: 1000 })
+  async updateAllDates(rows: { id: string; fileCreatedAt: Date; localDateTime: Date }[]): Promise<void> {
+    if (rows.length === 0) {
+      return;
+    }
+
+    const values = sql.join(
+      rows.map((row) => sql`(${row.id}::uuid, ${row.fileCreatedAt}::timestamptz, ${row.localDateTime}::timestamptz)`),
+    );
+
+    await sql`
+      UPDATE asset
+      SET "fileCreatedAt" = v."fileCreatedAt", "localDateTime" = v."localDateTime"
+      FROM (VALUES ${values}) AS v(id, "fileCreatedAt", "localDateTime")
+      WHERE asset.id = v.id
+    `.execute(this.db);
+  }
+
   @GenerateSql({ params: [DummyValue.UUID, ['description']] })
   unlockProperties(assetId: string, properties: LockableProperty[]) {
     return this.db
