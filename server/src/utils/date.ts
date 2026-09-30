@@ -42,3 +42,15 @@ export const mergeTimeZone = (dateTimeOriginal?: string | null, timeZone?: strin
 export const toLocalDateTime = (dateTimeOriginal: string) => {
   return DateTime.fromISO(dateTimeOriginal, { setZone: true }).setZone('UTC', { keepLocalTime: true }).toJSDate();
 };
+
+/**
+ * Same idea as toLocalDateTime(), for callers that already have the instant as a Date plus a
+ * separate fixed-offset timeZone name (e.g. a bulk relative-shift result) rather than a single
+ * ISO string with the offset embedded. A missing/unknown timeZone is treated as "no shift":
+ * the instant is used as-is, same as MetadataService.getDates()'s no-timezone fallback.
+ */
+export const localDateTimeFromInstant = (dateTimeOriginal: Date, timeZone?: string | null) => {
+  const utc = DateTime.fromJSDate(dateTimeOriginal, { zone: 'utc' });
+  const local = timeZone ? utc.setZone(timeZone) : utc;
+  return local.setZone('UTC', { keepLocalTime: true }).toJSDate();
+};

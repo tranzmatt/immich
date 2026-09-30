@@ -49,7 +49,7 @@ import {
   onBeforeUnlink,
 } from 'src/utils/asset.util.js';
 import { updateLockedColumns } from 'src/utils/database.js';
-import { extractTimeZone, toLocalDateTime } from 'src/utils/date.js';
+import { extractTimeZone, localDateTimeFromInstant, toLocalDateTime } from 'src/utils/date.js';
 import { batched, findOrFail } from 'src/utils/misc.js';
 import { transformOcrBoundingBox } from 'src/utils/transform.js';
 
@@ -199,8 +199,24 @@ export class AssetService extends BaseService {
       timeZone !== undefined ||
       extractedTimeZone?.type === 'fixed'
     ) {
-      await this.assetRepository.updateDateTimeOriginal(ids, dateTimeRelative, timeZone ?? extractedTimeZone?.name);
+      const shifted = await this.assetRepository.updateDateTimeOriginal(
+        ids,
+        dateTimeRelative,
+        timeZone ?? extractedTimeZone?.name,
+      );
       shouldWriteSidecar = true;
+
+      // See update()'s `dates` comment: a shifted dateTimeOriginal only lands in asset_exif on
+      // its own, so the timeline/grid won't reflect it without this.
+      await this.assetRepository.updateAllDates(
+        shifted
+          .filter((row): row is typeof row & { dateTimeOriginal: Date } => row.dateTimeOriginal !== null)
+          .map((row) => ({
+            id: row.assetId,
+            fileCreatedAt: row.dateTimeOriginal,
+            localDateTime: localDateTimeFromInstant(row.dateTimeOriginal, row.timeZone),
+          })),
+      );
     }
 
     if (Object.keys(assetDto).length > 0) {

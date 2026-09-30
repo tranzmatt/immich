@@ -508,7 +508,25 @@ describe(AssetService.name, () => {
         timeZone,
       });
       expect(mocks.asset.updateDateTimeOriginal).toHaveBeenCalledWith(['asset-1'], dateTimeRelative, timeZone);
+      expect(mocks.asset.updateAllDates).toHaveBeenCalledWith([
+        {
+          id: 'asset-1',
+          fileCreatedAt: new Date('2020-02-25T04:41:00Z'),
+          localDateTime: new Date('2020-02-25T06:41:00Z'),
+        },
+      ]);
       expect(mocks.job.queueAll).toHaveBeenCalledWith([{ name: JobName.SidecarWrite, data: { id: 'asset-1' } }]);
+    });
+
+    it('should skip assets the relative shift could not resolve a new dateTimeOriginal for', async () => {
+      mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set(['asset-1']));
+      mocks.asset.updateDateTimeOriginal.mockResolvedValue([
+        { assetId: 'asset-1', dateTimeOriginal: null, timeZone: null },
+      ]);
+
+      await sut.updateAll(authStub.admin, { ids: ['asset-1'], dateTimeRelative: 35 });
+
+      expect(mocks.asset.updateAllDates).toHaveBeenCalledWith([]);
     });
   });
 
