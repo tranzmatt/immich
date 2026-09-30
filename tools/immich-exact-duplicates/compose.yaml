@@ -1,0 +1,26 @@
+services:
+  exact-duplicates:
+    build: .
+    container_name: immich_exact_duplicates
+    restart: unless-stopped
+    ports:
+      - '0.0.0.0:${EXACT_DUPLICATES_PORT:-3210}:3210'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - '/mnt/logikoma/usbshare1/ArtStation:/mnt/external/artstation:ro'
+      - '/mnt/logikoma/docker/mega/Graphics:/mnt/external/mega:ro'
+      - '/mnt/logikoma/netbackup/OneDrivePics:/mnt/external/onedrivepics:ro'
+      - '/mnt/logikoma/netbackup/OneDriveVideos:/mnt/external/onedrivevideos:ro'
+    environment:
+      IMMICH_URL: ${IMMICH_URL:-http://host.docker.internal:2283}
+      IMMICH_API_KEY: ${IMMICH_API_KEY:?Set IMMICH_API_KEY in .env}
+      APP_USERNAME: ${APP_USERNAME:?Set APP_USERNAME in .env}
+      APP_PASSWORD: ${APP_PASSWORD:?Set APP_PASSWORD in .env}
+      HASH_CONCURRENCY: ${HASH_CONCURRENCY:-2}
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3210/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

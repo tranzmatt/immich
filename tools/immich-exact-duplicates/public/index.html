@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Exact duplicates</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">Utilities</p>
+          <h1>Exact duplicates</h1>
+          <p>Byte-for-byte matches using checksums Immich already calculated.</p>
+        </div>
+        <div class="controls">
+          <select id="type" aria-label="Asset type"><option value="VIDEO">Videos</option><option value="IMAGE">Images</option></select>
+          <button id="scan">Scan library</button>
+        </div>
+      </header>
+      <section id="status" class="notice">Ready. No files will be modified.</section>
+      <section id="progress-panel" class="progress-panel" hidden>
+        <div><strong id="progress-stage">Starting</strong><span id="progress-count"></span></div>
+        <progress id="progress" max="100"></progress>
+      </section>
+      <section id="results" aria-live="polite"></section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
