@@ -54,3 +54,5 @@ export const localDateTimeFromInstant = (dateTimeOriginal: Date, timeZone?: stri
   const local = timeZone ? utc.setZone(timeZone) : utc;
   return local.setZone('UTC', { keepLocalTime: true }).toJSDate();
 };
+
+export const asLocalTime = (date: DateTime<true>) => date.setZone('UTC', { keepLocalTime: true }).toJSDate();
