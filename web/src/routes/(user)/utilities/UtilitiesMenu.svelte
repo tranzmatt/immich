@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { env } from '$env/dynamic/public';
+  import { PUBLIC_EXACT_DUPLICATES_URL } from '$app/env/public';
   import AppDownloadModal from '#lib/modals/AppDownloadModal.svelte';
   import ObtainiumConfigModal from '#lib/modals/ObtainiumConfigModal.svelte';
   import { Route } from '#lib/route.ts';
@@ -16,10 +16,10 @@
 
   const links = [
     { href: Route.duplicatesUtility(), icon: mdiContentDuplicate, label: $t('review_duplicates') },
-    ...(env.PUBLIC_EXACT_DUPLICATES_URL
+    ...(PUBLIC_EXACT_DUPLICATES_URL
       ? [
           {
-            href: env.PUBLIC_EXACT_DUPLICATES_URL,
+            href: PUBLIC_EXACT_DUPLICATES_URL,
             icon: mdiContentDuplicate,
             label: 'Exact duplicates',
             external: true,
