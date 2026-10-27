@@ -1,8 +1,8 @@
 <script lang="ts">
   import { env } from '$env/dynamic/public';
-  import AppDownloadModal from '$lib/modals/AppDownloadModal.svelte';
-  import ObtainiumConfigModal from '$lib/modals/ObtainiumConfigModal.svelte';
-  import { Route } from '$lib/route';
+  import AppDownloadModal from '#lib/modals/AppDownloadModal.svelte';
+  import ObtainiumConfigModal from '#lib/modals/ObtainiumConfigModal.svelte';
+  import { Route } from '#lib/route.ts';
   import { Icon, modalManager, Text } from '@immich/ui';
   import {
     mdiCellphoneArrowDownVariant,
