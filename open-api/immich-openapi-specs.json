@@ -6333,7 +6333,7 @@
             "state": "Added"
           }
         ],
-        "x-immich-permission": "clusterGroup.read"
+        "x-immich-permission": "clusterGroup.admin"
       }
     },
     "/cluster-groups/{id}/requests": {
@@ -23104,6 +23104,7 @@
         "description": "Image format",
         "enum": [
           "jpeg",
+          "jxl",
           "webp"
         ],
         "type": "string"
@@ -25781,6 +25782,7 @@
           "backup.delete",
           "clusterGroup.read",
           "clusterGroup.leave",
+          "clusterGroup.admin",
           "clusterGroupRequest.create",
           "clusterGroupRequest.read",
           "clusterGroupRequest.delete",
@@ -28436,11 +28438,13 @@
       "ServerFeatureLevel": {
         "description": "Server feature level",
         "enum": [
-          1
+          1,
+          2
         ],
         "type": "integer",
         "x-enum-varnames": [
-          "FeatureLevel"
+          "FeatureLevel",
+          "Passkeys"
         ]
       },
       "ServerFeaturesDto": {
