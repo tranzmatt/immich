@@ -23,6 +23,7 @@ import {
   LogLevel,
   QueueName,
 } from 'src/enum.js';
+import { setSafeMode } from 'src/utils/safe-mode.js';
 import { setDifference } from 'src/utils/set.js';
 
 export interface EnvData {
@@ -299,6 +300,7 @@ const getEnv = (): EnvData => {
             const cid = req.header(ImmichHeader.CorrelationId) || cls.get(CLS_ID);
             cls.set(CLS_ID, cid);
             res.header(ImmichHeader.CorrelationId, cid);
+            setSafeMode(cls, req);
           },
         },
       },

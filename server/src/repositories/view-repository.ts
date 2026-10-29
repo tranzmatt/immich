@@ -4,6 +4,7 @@ import { DummyValue, GenerateSql } from 'src/decorators.js';
 import { AssetVisibility } from 'src/enum.js';
 import { DB } from 'src/schema/index.js';
 import { asUuid, withExif } from 'src/utils/database.js';
+import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
 
 export class ViewRepository {
   constructor(@InjectKysely() private db: Kysely<DB>) {}
@@ -42,6 +43,7 @@ export class ViewRepository {
       .where('localDateTime', 'is not', null)
       .where('originalPath', 'like', `%${normalizedPath}/%`)
       .where('originalPath', 'not like', `%${normalizedPath}/%/%`)
+      .$if(isSafeMode(), (qb) => qb.where(notNsfw))
       .orderBy(
         (eb) => eb.fn('regexp_replace', ['asset.originalPath', eb.val('.*/(.+)'), eb.val(String.raw`\1`)]),
         'asc',

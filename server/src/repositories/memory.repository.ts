@@ -18,6 +18,7 @@ import { type YearMonthDay } from 'src/repositories/asset.repository.js';
 import { DB } from 'src/schema/index.js';
 import { MemoryTable } from 'src/schema/tables/memory.table.js';
 import { asLocalTime } from 'src/utils/date.js';
+import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
 
 const asMakeDate = (eb: ExpressionBuilder<DB, 'asset'>, { year, month, day }: YearMonthDay) =>
   eb.fn('make_date', [sql`${year}::int`, sql`${month}::int`, sql`${day}::int`]);
@@ -88,6 +89,7 @@ export class MemoryRepository implements IBulkAsset {
             .whereRef('memory_asset.memoriesId', '=', 'memory.id')
             .where('asset.visibility', '=', sql.lit(AssetVisibility.Timeline))
             .where('asset.deletedAt', 'is', null)
+            .$if(isSafeMode(), (qb) => qb.where(notNsfw))
             .where((eb) =>
               eb.not(
                 eb.exists(
@@ -265,7 +267,8 @@ export class MemoryRepository implements IBulkAsset {
             .whereRef('memory_asset.memoriesId', '=', 'memory.id')
             .orderBy('asset.fileCreatedAt', 'asc')
             .where('asset.visibility', '=', sql.lit(AssetVisibility.Timeline))
-            .where('asset.deletedAt', 'is', null),
+            .where('asset.deletedAt', 'is', null)
+            .$if(isSafeMode(), (qb) => qb.where(notNsfw)),
         ).as('assets'),
       )
       .where('id', '=', id)

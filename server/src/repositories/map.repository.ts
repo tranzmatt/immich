@@ -13,6 +13,7 @@ import { SystemMetadataRepository } from 'src/repositories/system-metadata.repos
 import { DB } from 'src/schema/index.js';
 import { GeodataPlacesTable } from 'src/schema/tables/geodata-places.table.js';
 import { NaturalEarthCountriesTable } from 'src/schema/tables/natural-earth-countries.table.js';
+import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
 
 export interface MapMarkerSearchOptions {
   isArchived?: boolean;
@@ -139,6 +140,7 @@ export class MapRepository {
           .on('asset_exif.longitude', 'is not', null),
       )
       .where('asset.deletedAt', 'is', null)
+      .$if(isSafeMode(), (qb) => qb.where(notNsfw))
       .orderBy('fileCreatedAt', 'desc')
       .select([
         'id',

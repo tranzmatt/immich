@@ -49,6 +49,7 @@ import {
 import { DB } from 'src/schema/index.js';
 import { AssetExifTable } from 'src/schema/tables/asset-exif.table.js';
 import { fromChecksum } from 'src/utils/request.js';
+import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
 
 export const getKyselyConfig = (connection: DatabaseConnectionParams): KyselyConfig => {
   return {
@@ -431,6 +432,7 @@ export function searchAssetBuilderLegacy(kysely: Kysely<DB>, options: AssetSearc
   return kysely
     .withPlugin(joinDeduplicationPlugin)
     .selectFrom('asset')
+    .$if(isSafeMode(), (qb) => qb.where(notNsfw))
     .$if(!!options.visibility, (qb) =>
       options.visibility === 'not-locked'
         ? qb.where('asset.visibility', '!=', AssetVisibility.Locked)
@@ -813,6 +815,7 @@ export function searchAssetBuilder(kysely: Kysely<DB>, options: AssetSearchBuild
       .leftJoin('asset_exif', 'asset.id', 'asset_exif.assetId')
       .$if(!!options.withExif, (qb) => qb.select(selectExifInfo))
       .$if(scopeGlobally, (qb) => qb.where(ownershipPredicate))
+      .$if(isSafeMode(), (qb) => qb.where(notNsfw))
       .where((eb) =>
         eb.or([eb('asset.visibility', '!=', AssetVisibility.Locked), eb('asset.ownerId', '=', scope.lockedOwnerId)]),
       )

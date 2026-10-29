@@ -55,6 +55,7 @@ import {
   withTags,
 } from 'src/utils/database.js';
 import { globToPostgresRegex } from 'src/utils/misc.js';
+import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
 
 export type AssetStats = Record<AssetType, number>;
 
@@ -821,7 +822,8 @@ export class AssetRepository {
           .$if(options.isDuplicate !== undefined, (qb) =>
             qb.where('asset.duplicateId', options.isDuplicate ? 'is not' : 'is', null),
           )
-          .$if(!!options.tagId, (qb) => withTagId(qb, options.tagId!)),
+          .$if(!!options.tagId, (qb) => withTagId(qb, options.tagId!))
+          .$if(isSafeMode(), (qb) => qb.where(notNsfw)),
       )
       .selectFrom('asset')
       .select(sql<string>`("timeBucket" AT TIME ZONE 'UTC')::date::text`.as('timeBucket'))
@@ -877,6 +879,7 @@ export class AssetRepository {
           .where('asset.deletedAt', options.isTrashed ? 'is not' : 'is', null)
           .$if(options.visibility === undefined, withDefaultVisibility)
           .$if(!!options.visibility, (qb) => qb.where('asset.visibility', '=', options.visibility!))
+          .$if(isSafeMode(), (qb) => qb.where(notNsfw))
           .$if(!!options.bbox, (qb) => {
             const bbox = options.bbox!;
             const circle = getBoundingCircle(bbox);
