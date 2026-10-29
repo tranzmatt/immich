@@ -25,6 +25,13 @@
       }
     </script>
 
+    <script>
+      // Local-only safe mode (SafeModeButton.svelte): on by default, before the first API request.
+      if (!document.cookie.split('; ').some((c) => c.startsWith('immich_safe_mode='))) {
+        document.cookie = 'immich_safe_mode=1; path=/; max-age=31536000; SameSite=Lax';
+      }
+    </script>
+
     %sveltekit.head%
 
     <style>

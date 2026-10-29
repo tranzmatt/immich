@@ -18,6 +18,7 @@
   import { createQuery } from '@tanstack/svelte-query';
   import { mdiBellBadge, mdiBellOutline, mdiMagnify, mdiMenu, mdiTrayArrowUp } from '@mdi/js';
   import { t } from 'svelte-i18n';
+  import SafeModeButton from '../SafeModeButton.svelte';
   import ThemeButton from '../ThemeButton.svelte';
   import UserAvatar from '../UserAvatar.svelte';
   import AccountInfoPanel from './AccountInfoPanel.svelte';
@@ -113,6 +114,8 @@
             class="lg:hidden"
           />
         {/if}
+
+        <SafeModeButton />
 
         <ThemeButton />
 

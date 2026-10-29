@@ -22,6 +22,7 @@ import {
   withSearchOrder,
 } from 'src/utils/database.js';
 import { type PaginationOptions, paginationHelper } from 'src/utils/pagination.js';
+import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
 
 export interface SearchAssetIdOptions {
   checksum?: Buffer;
@@ -438,6 +439,7 @@ export class SearchRepository {
           .where('asset.visibility', '=', AssetVisibility.Timeline)
           .where('asset.type', '=', AssetType.Image)
           .where('asset.deletedAt', 'is', null)
+          .$if(isSafeMode(), (qb) => qb.where(notNsfw))
           .orderBy('city')
           .limit(1);
 
@@ -454,6 +456,7 @@ export class SearchRepository {
                 .where('asset.visibility', '=', AssetVisibility.Timeline)
                 .where('asset.type', '=', AssetType.Image)
                 .where('asset.deletedAt', 'is', null)
+                .$if(isSafeMode(), (qb) => qb.where(notNsfw))
                 .whereRef('asset_exif.city', '>', 'cte.city')
                 .orderBy('city')
                 .limit(1)
