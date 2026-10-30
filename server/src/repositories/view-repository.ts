@@ -1,3 +1,4 @@
+import { trim } from 'lodash-es';
 import { InjectKysely } from 'nestjs-kysely';
 import type { Kysely } from 'kysely';
 import { DummyValue, GenerateSql } from 'src/decorators.js';
@@ -5,6 +6,8 @@ import { AssetVisibility } from 'src/enum.js';
 import { DB } from 'src/schema/index.js';
 import { asUuid, withExif } from 'src/utils/database.js';
 import { isSafeMode, notNsfw } from 'src/utils/safe-mode.js';
+
+const escapeLikePattern = (value: string) => value.replaceAll(/[\\%_]/g, String.raw`\$&`);
 
 export class ViewRepository {
   constructor(@InjectKysely() private db: Kysely<DB>) {}
@@ -29,7 +32,8 @@ export class ViewRepository {
 
   @GenerateSql({ params: [DummyValue.UUID, DummyValue.STRING] })
   async getAssetsByOriginalPath(userId: string, partialPath: string) {
-    const normalizedPath = partialPath.replaceAll(/\/$/g, '');
+    const directory = trim(partialPath, '/');
+    const prefix = escapeLikePattern(directory ? `/${directory}/` : '/');
 
     return this.db
       .selectFrom('asset')
@@ -41,8 +45,8 @@ export class ViewRepository {
       .where('fileCreatedAt', 'is not', null)
       .where('fileModifiedAt', 'is not', null)
       .where('localDateTime', 'is not', null)
-      .where('originalPath', 'like', `%${normalizedPath}/%`)
-      .where('originalPath', 'not like', `%${normalizedPath}/%/%`)
+      .where('originalPath', 'like', `${prefix}%`)
+      .where('originalPath', 'not like', `${prefix}%/%`)
       .$if(isSafeMode(), (qb) => qb.where(notNsfw))
       .orderBy(
         (eb) => eb.fn('regexp_replace', ['asset.originalPath', eb.val('.*/(.+)'), eb.val(String.raw`\1`)]),
