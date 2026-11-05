@@ -5,7 +5,6 @@ import { Stats } from 'node:fs';
 import { resolve } from 'node:path';
 import { Writable } from 'node:stream';
 import { Mocked } from 'vitest';
-import type { ClassConstructor, ClassConstructorsToInstances, UploadFile } from 'src/types.js';
 import { AssetFace } from 'src/database.js';
 import { AuthDto, LoginResponseDto } from 'src/dtos/auth.dto.js';
 import { SystemConfig } from 'src/dtos/config.dto.js';
@@ -78,6 +77,7 @@ import { AssetExifTable } from 'src/schema/tables/asset-exif.table.js';
 import { AssetFileTable } from 'src/schema/tables/asset-file.table.js';
 import { AssetJobStatusTable } from 'src/schema/tables/asset-job-status.table.js';
 import { AssetMetadataTable } from 'src/schema/tables/asset-metadata.table.js';
+import { AssetOcrTable } from 'src/schema/tables/asset-ocr.table.js';
 import { AssetTable } from 'src/schema/tables/asset.table.js';
 import { FaceSearchTable } from 'src/schema/tables/face-search.table.js';
 import { MemoryTable } from 'src/schema/tables/memory.table.js';
@@ -92,6 +92,7 @@ import { UserTable } from 'src/schema/tables/user.table.js';
 import { BASE_SERVICE_DEPENDENCIES, BaseService } from 'src/services/base.service.js';
 import { MetadataService } from 'src/services/metadata.service.js';
 import { SyncService } from 'src/services/sync.service.js';
+import type { ClassConstructor, ClassConstructorsToInstances, UploadFile } from 'src/types.js';
 import { getConfig, updateConfig } from 'src/utils/config.js';
 import { mockEnvData } from 'test/repositories/config.repository.mock.js';
 import { newTelemetryRepositoryMock } from 'test/repositories/telemetry.repository.mock.js';
@@ -228,6 +229,28 @@ export class MediumTestContext<S extends ClassConstructor<typeof BaseService> = 
     const assetFace = mediumFactory.assetFaceInsert(dto);
     const result = await this.get(PersonRepository).createAssetFace(assetFace);
     return { assetFace, result };
+  }
+
+  async newAssetOcr(
+    dto: (Partial<Insertable<AssetOcrTable>> & { assetId: string; text: string; textScore: number })[],
+  ) {
+    const result = await this.get(OcrRepository).upsert(
+      dto[0].assetId,
+      dto.map((item) => ({
+        ...item,
+        x1: 0,
+        y1: 0,
+        x2: 1,
+        y2: 1,
+        x3: 2,
+        y3: 2,
+        x4: 3,
+        y4: 3,
+        boxScore: item.textScore,
+      })),
+      '',
+    );
+    return { ocr: dto, result };
   }
 
   async newMemory(dto: Partial<Insertable<MemoryTable>> = {}) {

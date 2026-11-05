@@ -9,7 +9,6 @@ import { CLS_ID, ClsModuleOptions } from 'nestjs-cls';
 import { OpenTelemetryModuleOptions } from 'nestjs-otel/lib/interfaces/index.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { VectorExtension } from 'src/types.js';
 import { IWorker, citiesFile } from 'src/constants.js';
 import { Telemetry } from 'src/decorators.js';
 import { EnvSchema } from 'src/dtos/env.dto.js';
@@ -24,6 +23,7 @@ import {
   QueueName,
 } from 'src/enum.js';
 import { setSafeMode } from 'src/utils/safe-mode.js';
+import type { VectorExtension } from 'src/types.js';
 
 export interface EnvData {
   host?: string;

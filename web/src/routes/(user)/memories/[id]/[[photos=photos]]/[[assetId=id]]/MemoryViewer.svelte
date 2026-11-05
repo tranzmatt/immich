@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { scrollMemoryClearer } from '#lib/actions/scroll-memory.ts';
+  import { scrollMemoryClearer } from '#lib/actions/scroll-memory.svelte.ts';
   import { shortcuts } from '#lib/actions/shortcut.ts';
   import ActionMenuItem from '#lib/components/ActionMenuItem.svelte';
   import BirthdayConfetti from '#lib/components/memories/BirthdayConfetti.svelte';
@@ -310,10 +310,10 @@
 {/if}
 
 <section
-  id="memory-viewer"
+  data-testid="memory-viewer"
   data-sveltekit-reset={false}
   class="dark w-full bg-immich-dark-gray text-white"
-  use:scrollMemoryClearer={{ routeStartsWith: Route.memories() }}
+  {@attach scrollMemoryClearer({ routeStartsWith: Route.memories() })}
   bind:this={memoryWrapper}
   bind:clientHeight={viewport.height}
   bind:clientWidth={viewport.width}
@@ -626,7 +626,7 @@
       />
     </div>
 
-    <div id="gallery-memory" {@attach galleryObserver} bind:this={memoryGallery}>
+    <div data-testid="memory-gallery" {@attach galleryObserver} bind:this={memoryGallery}>
       <GalleryViewer
         assets={currentTimelineAssets}
         viewerAssets={current.viewerAssets}
